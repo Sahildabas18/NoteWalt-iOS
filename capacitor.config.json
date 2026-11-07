@@ -1,0 +1,24 @@
+{
+  "appId": "com.notewalt.app",
+  "appName": "Note Walt",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "ios": {
+    "contentInset": "always",
+    "preferredContentMode": "mobile",
+    "backgroundColor": "#F7F5F0",
+    "allowsLinkPreview": false,
+    "handleApplicationURL": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#F7F5F0",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#F7F5F0"
+    }
+  }
+}

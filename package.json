@@ -1,0 +1,20 @@
+{
+  "name": "notewalt-ios",
+  "version": "2.0.0",
+  "description": "Note Walt for iOS - Eye-Comfort Note & Digital Wallet Vault",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo Web build ready"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0",
+    "@capacitor/haptics": "^6.0.0",
+    "@capacitor/clipboard": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  }
+}

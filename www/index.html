@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Note Walt">
+  <meta name="format-detection" content="telephone=no">
+  <title>Note Walt</title>
+  
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined|Material+Icons">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&family=Playfair+Display:wght@500;600;700&family=Quicksand:wght@500;600;700&family=Montserrat:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-accent="ocean" class="ios-device">
+
+  <!-- iOS Status Bar Fill -->
+  <div class="ios-status-bar-fill"></div>
+
+  <!-- Sidebar Overlay -->
+  <div id="sidebar-overlay"></div>
+
+  <!-- Sidebar Navigation -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <img src="icon.png" alt="Note Walt" class="sidebar-logo-img">
+      <div class="sidebar-brand-text">
+        <h2>Note Walt</h2>
+        <span class="sidebar-edition">iOS Edition</span>
+      </div>
+      <button id="sidebar-close-btn" class="icon-btn mobile-only"><i class="material-icons-outlined">close</i></button>
+    </div>
+    <ul class="sidebar-menu">
+      <li data-view="notes" class="active"><i class="material-icons-outlined">lightbulb</i><span>Notes</span></li>
+      <li data-view="reminders"><i class="material-icons-outlined">notifications</i><span>Reminders</span></li>
+      <li class="label-section">
+        <div class="label-header" data-view="labels"><i class="material-icons-outlined">label</i><span>Labels</span><i class="material-icons-outlined arrow">expand_more</i></div>
+        <ul id="label-list" class="label-submenu"></ul>
+        <div id="edit-labels-btn" class="edit-labels"><i class="material-icons-outlined">edit</i><span>Edit labels</span></div>
+      </li>
+      <li data-view="archive"><i class="material-icons-outlined">archive</i><span>Archive</span></li>
+      <li data-view="bin"><i class="material-icons-outlined">delete</i><span>Bin</span></li>
+      <li data-view="safe"><i class="material-icons-outlined">lock</i><span>Safe</span></li>
+      <li class="sidebar-divider"></li>
+      <li data-view="settings"><i class="material-icons-outlined">settings</i><span>Settings</span></li>
+    </ul>
+  </nav>
+
+  <!-- Main Application Shell -->
+  <main id="main-content">
+    <!-- Top Bar -->
+    <header id="top-bar">
+      <button id="menu-toggle" class="icon-btn" title="Toggle menu"><i class="material-icons-outlined">menu</i></button>
+      
+      <div id="search-bar">
+        <i class="material-icons-outlined">search</i>
+        <input type="text" placeholder="Search notes, cards, passwords..." id="search-input">
+        <button id="search-clear" class="icon-btn"><i class="material-icons-outlined">close</i></button>
+      </div>
+
+      <div class="top-bar-actions">
+        <!-- Note Sort Option -->
+        <div id="sort-wrapper" class="sort-wrapper">
+          <button id="sort-toggle-btn" class="icon-btn" title="Sort order"><i class="material-icons-outlined">sort</i></button>
+          <div id="sort-dropdown" class="sort-dropdown">
+            <div class="sort-option active" data-sort="updated-desc">Date Modified (Newest)</div>
+            <div class="sort-option" data-sort="created-desc">Date Created (Newest)</div>
+            <div class="sort-option" data-sort="title-asc">Title (A - Z)</div>
+            <div class="sort-option" data-sort="title-desc">Title (Z - A)</div>
+          </div>
+        </div>
+
+        <button id="view-toggle" class="icon-btn" title="Toggle layout"><i class="material-icons-outlined">view_module</i></button>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <div id="content-area">
+
+      <!-- ==================== TAB 1: NOTES HUB ==================== -->
+      <div id="notes-view" class="view active">
+        <div id="pinned-section" class="notes-section" style="display:none">
+          <h3 class="section-title"><i class="material-icons-outlined">push_pin</i> PINNED</h3>
+          <div id="pinned-notes" class="notes-grid"></div>
+        </div>
+        <div id="others-section" class="notes-section">
+          <h3 id="others-title" class="section-title" style="display:none">OTHERS</h3>
+          <div id="other-notes" class="notes-grid"></div>
+        </div>
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon-wrap"><i class="material-icons-outlined">lightbulb</i></div>
+          <h3>Notes you add appear here</h3>
+          <p>Capture ideas, interactive checklists, markdown tables, and memories</p>
+          <button id="empty-add-note-btn" class="btn-primary"><i class="material-icons-outlined">add</i> Create First Note</button>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 2: CARDS VAULT ==================== -->
+      <div id="cards-view" class="view">
+        <div class="cards-header-bar">
+          <div class="cards-title-block">
+            <h2>Cards Vault</h2>
+            <p class="subtitle">Secure digital cards, accounts, and encrypted identity documents</p>
+          </div>
+          
+          <div class="cards-controls">
+            <!-- View Mode Switcher -->
+            <div class="view-mode-switcher">
+              <button class="view-mode-btn active" data-card-mode="stacked" title="Stacked Deck (3D Carousel)"><i class="material-icons-outlined">view_carousel</i><span>Stacked</span></button>
+              <button class="view-mode-btn" data-card-mode="grid" title="2-Column Grid"><i class="material-icons-outlined">grid_view</i><span>Grid</span></button>
+              <button class="view-mode-btn" data-card-mode="list" title="Compact List"><i class="material-icons-outlined">view_headline</i><span>List</span></button>
+            </div>
+            
+            <button id="add-card-btn" class="btn-primary"><i class="material-icons-outlined">add_card</i> Add Card / ID</button>
+          </div>
+        </div>
+
+        <!-- Category Filter Chips -->
+        <div class="card-category-chips">
+          <button class="category-chip active" data-category="All">All Items</button>
+          <button class="category-chip" data-category="Credit / Debit Cards">Credit / Debit Cards</button>
+          <button class="category-chip" data-category="Bank Accounts">Bank Accounts</button>
+          <button class="category-chip" data-category="Government IDs">Government IDs</button>
+        </div>
+
+        <!-- Cards Container (Dynamically rendered based on mode) -->
+        <div id="cards-container" class="cards-display-container view-stacked">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <div id="cards-empty-state" class="empty-state" style="display:none">
+          <div class="empty-icon-wrap"><i class="material-icons-outlined">credit_card</i></div>
+          <h3>Your Cards Vault is Empty</h3>
+          <p>Safely store payment cards, bank details, and IDs with AES-256 encryption</p>
+          <button id="cards-empty-add-btn" class="btn-primary"><i class="material-icons-outlined">add_card</i> Add First Card</button>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 3: INFO TEMPLATES ==================== -->
+      <div id="info-view" class="view">
+        <!-- Sub-Tabs Navigation -->
+        <div class="info-tabs">
+          <button class="info-tab active" data-tab="vehicle"><i class="material-icons-outlined">directions_car</i> Vehicle Expenses</button>
+          <button class="info-tab" data-tab="emi"><i class="material-icons-outlined">payments</i> EMI Loan Payoff</button>
+          <button class="info-tab" data-tab="passwords"><i class="material-icons-outlined">vpn_key</i> Password Manager</button>
+        </div>
+
+        <!-- SUB-TAB A: Vehicle Expenses -->
+        <div id="vehicle-tab" class="info-tab-content active">
+          <div class="vehicle-config-card">
+            <div class="vehicle-config-info">
+              <div class="vehicle-type-badge">
+                <i class="material-icons-outlined" id="vehicle-type-icon">directions_car</i>
+                <span id="vehicle-type-label">Car</span>
+              </div>
+              <div class="vehicle-details">
+                <span class="vehicle-fuel-pill" id="vehicle-fuel-pill">Petrol</span>
+                <span class="vehicle-rate-pill" id="vehicle-rate-pill">₹ 101.50 / Ltr</span>
+              </div>
+            </div>
+            <div class="vehicle-config-actions">
+              <button id="vehicle-setup-btn" class="btn-secondary"><i class="material-icons-outlined">tune</i> Setup</button>
+              <button id="add-expense-btn" class="btn-primary"><i class="material-icons-outlined">add</i> Add Expense</button>
+            </div>
+          </div>
+
+          <div class="vehicle-metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">TOTAL SPENT</span>
+              <h3 class="metric-value" id="metric-total-spend">₹ 0.00</h3>
+              <span class="metric-sub">All-time tracked</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">THIS MONTH</span>
+              <h3 class="metric-value" id="metric-month-spend">₹ 0.00</h3>
+              <span class="metric-sub" id="metric-month-name">Current month</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">FUEL SPEND</span>
+              <h3 class="metric-value" id="metric-fuel-spend">₹ 0.00</h3>
+              <span class="metric-sub" id="metric-fuel-volume">0.0 Litres</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">SERVICE & REPAIRS</span>
+              <h3 class="metric-value" id="metric-service-spend">₹ 0.00</h3>
+              <span class="metric-sub">Maintenance cost</span>
+            </div>
+          </div>
+
+          <!-- 6-Month Monthly Expense Gradient Bar Graph -->
+          <div class="chart-container-card">
+            <div class="chart-header">
+              <h4>Trailing 6-Month Expense Analysis</h4>
+              <span class="chart-badge">Monthly Gradient Graph</span>
+            </div>
+            <div id="vehicle-bar-chart" class="gradient-bar-chart"></div>
+          </div>
+
+          <!-- Expense Category Filter Chips -->
+          <div class="expense-filter-chips">
+            <button class="expense-chip active" data-cat="All">All Expenses</button>
+            <button class="expense-chip" data-cat="Fuel">Fuel</button>
+            <button class="expense-chip" data-cat="Service">Service</button>
+            <button class="expense-chip" data-cat="Insurance">Insurance</button>
+            <button class="expense-chip" data-cat="PUC">PUC</button>
+            <button class="expense-chip" data-cat="Parking">Parking & Toll</button>
+            <button class="expense-chip" data-cat="Repair">Repair</button>
+            <button class="expense-chip" data-cat="Other">Other</button>
+          </div>
+
+          <!-- Expense Log Table -->
+          <div class="finance-table-container">
+            <table class="finance-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Vehicle</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Fuel Volume</th>
+                  <th>Amount</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="finance-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="finance-empty" style="display:none">
+            <div class="empty-icon-wrap"><i class="material-icons-outlined">local_gas_station</i></div>
+            <p>No vehicle expenses recorded yet</p>
+          </div>
+        </div>
+
+        <!-- SUB-TAB B: EMI Loan Payoff Tracker -->
+        <div id="emi-tab" class="info-tab-content">
+          <div class="emi-summary-banner">
+            <div class="emi-metric-block">
+              <span class="emi-metric-label">MONTHLY COMMITMENT</span>
+              <h2 class="emi-metric-val" id="emi-total-monthly">₹ 0</h2>
+              <span class="emi-metric-sub">Across all active loans</span>
+            </div>
+            <div class="emi-divider"></div>
+            <div class="emi-metric-block">
+              <span class="emi-metric-label">TOTAL REMAINING DEBT</span>
+              <h2 class="emi-metric-val" id="emi-total-debt">₹ 0</h2>
+              <span class="emi-metric-sub">Outstanding balance</span>
+            </div>
+            <div class="emi-divider"></div>
+            <div class="emi-metric-block">
+              <span class="emi-metric-label">ACTIVE LOANS</span>
+              <h2 class="emi-metric-val" id="emi-active-count">0</h2>
+              <span class="emi-metric-sub">Ongoing installment plans</span>
+            </div>
+            <div class="emi-banner-actions">
+              <button id="add-emi-btn" class="btn-primary"><i class="material-icons-outlined">add</i> Add Loan / EMI</button>
+            </div>
+          </div>
+
+          <!-- Dual Visual Analytics Graphs -->
+          <div class="emi-dual-charts-grid">
+            <div class="chart-container-card">
+              <div class="chart-header">
+                <h4>Monthly EMI by Lender</h4>
+                <span class="chart-badge">Outflow Share</span>
+              </div>
+              <div id="emi-lender-chart" class="gradient-bar-chart"></div>
+            </div>
+
+            <div class="chart-container-card">
+              <div class="chart-header">
+                <h4>12-Month Projected Payoff Curve</h4>
+                <span class="chart-badge">Remaining Balance</span>
+              </div>
+              <div id="emi-projection-chart" class="gradient-bar-chart"></div>
+            </div>
+          </div>
+
+          <div class="emi-list-header">
+            <h4>Active Installment Plans</h4>
+            <span class="hint">Tap "Paid 1 EMI" to decrement remaining months</span>
+          </div>
+          <div id="emi-cards-grid" class="emi-cards-grid"></div>
+
+          <div class="empty-state" id="emi-empty" style="display:none">
+            <div class="empty-icon-wrap"><i class="material-icons-outlined">account_balance</i></div>
+            <p>No active loans or installments recorded</p>
+          </div>
+        </div>
+
+        <!-- SUB-TAB C: Encrypted Password Manager -->
+        <div id="passwords-tab" class="info-tab-content">
+          <div class="passwords-top-bar">
+            <div class="passwords-search-box">
+              <i class="material-icons-outlined">search</i>
+              <input type="text" id="pw-search-input" placeholder="Search accounts, sites, usernames...">
+            </div>
+            <button id="add-password-btn" class="btn-primary"><i class="material-icons-outlined">add</i> Add Password</button>
+          </div>
+
+          <div class="passwords-list" id="passwords-list"></div>
+
+          <div class="empty-state" id="passwords-empty" style="display:none">
+            <div class="empty-icon-wrap"><i class="material-icons-outlined">vpn_key</i></div>
+            <p>No passwords saved yet</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 4: ARCHIVE VIEW ==================== -->
+      <div id="archive-view" class="view">
+        <div class="notes-grid" id="archive-notes"></div>
+        <div class="empty-state"><div class="empty-icon-wrap"><i class="material-icons-outlined">archive</i></div><p>No archived notes</p></div>
+      </div>
+
+      <!-- ==================== TAB 5: BIN VIEW ==================== -->
+      <div id="bin-view" class="view">
+        <div class="bin-header">
+          <p><i class="material-icons-outlined">info</i> Notes in Bin are permanently purged after 7 days</p>
+          <button id="empty-bin-btn" class="btn-secondary"><i class="material-icons-outlined">delete_sweep</i> Empty Bin</button>
+        </div>
+        <div class="notes-grid" id="bin-notes"></div>
+        <div class="empty-state"><div class="empty-icon-wrap"><i class="material-icons-outlined">delete</i></div><p>No notes in Bin</p></div>
+      </div>
+
+      <!-- ==================== TAB 6: SAFE VIEW ==================== -->
+      <div id="safe-view" class="view">
+        <div id="safe-locked" class="safe-dialog">
+          <div class="safe-badge-icon"><i class="material-icons-outlined">lock</i></div>
+          <h3 id="safe-title">Biometric & Safe Vault</h3>
+          <p class="safe-desc">Enter your 4-6 digit security PIN to access encrypted notes</p>
+          <div class="pin-input-group">
+            <input type="password" id="safe-pin" maxlength="6" placeholder="••••" autocomplete="off">
+          </div>
+          <button id="safe-unlock-btn" class="btn-primary">Unlock Safe</button>
+        </div>
+        <div id="safe-unlocked" style="display:none">
+          <div class="safe-header">
+            <div>
+              <h3>Private Safe Notes</h3>
+              <p class="subtitle">Notes hidden from normal searches</p>
+            </div>
+            <button id="safe-lock-btn" class="btn-secondary"><i class="material-icons-outlined">lock</i> Lock Safe</button>
+          </div>
+          <div class="notes-grid" id="safe-notes"></div>
+          <div class="empty-state"><div class="empty-icon-wrap"><i class="material-icons-outlined">lock_open</i></div><p>No hidden notes in Safe</p></div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 7: REMINDERS VIEW ==================== -->
+      <div id="reminders-view" class="view">
+        <div class="notes-grid" id="reminder-notes"></div>
+        <div class="empty-state"><div class="empty-icon-wrap"><i class="material-icons-outlined">notifications</i></div><p>Notes with reminders appear here</p></div>
+      </div>
+
+      <!-- ==================== TAB 8: SETTINGS VIEW ==================== -->
+      <div id="settings-view" class="view">
+        <div class="settings-container">
+          <h2>Settings & Preferences</h2>
+
+          <div class="settings-group">
+            <h3 class="group-title">APPEARANCE & EYE-COMFORT</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>Dark Mode</h4>
+                <p>Gentle Eye-Comfort charcoal dark theme</p>
+              </div>
+              <label class="toggle"><input type="checkbox" id="dark-mode-toggle"><span class="slider"></span></label>
+            </div>
+
+            <!-- 16 Material Accent Colors -->
+            <div class="setting-item accent-selector-row">
+              <div class="setting-info">
+                <h4>Accent Theme Color</h4>
+                <p>Select your preferred Material accent color</p>
+              </div>
+              <div class="accent-palette-swatches" id="accent-swatches">
+                <div class="accent-swatch active" data-accent="ocean" style="background:#456B91" title="Ocean Blue (Default)"></div>
+                <div class="accent-swatch" data-accent="teal" style="background:#397D78" title="Teal"></div>
+                <div class="accent-swatch" data-accent="sage" style="background:#5D8066" title="Sage"></div>
+                <div class="accent-swatch" data-accent="purple" style="background:#78649A" title="Muted Purple"></div>
+                <div class="accent-swatch" data-accent="dustypink" style="background:#B66F87" title="Dusty Pink"></div>
+                <div class="accent-swatch" data-accent="amber" style="background:#9A6A24" title="Warm Amber"></div>
+                <div class="accent-swatch" data-accent="slate" style="background:#66758A" title="Slate"></div>
+                <div class="accent-swatch" data-accent="coral" style="background:#B96352" title="Muted Coral"></div>
+                <div class="accent-swatch" data-accent="indigo" style="background:#565F9B" title="Deep Indigo"></div>
+                <div class="accent-swatch" data-accent="blue" style="background:#1E88E5" title="Material Blue"></div>
+                <div class="accent-swatch" data-accent="green" style="background:#43A047" title="Material Green"></div>
+                <div class="accent-swatch" data-accent="orange" style="background:#FB8C00" title="Orange"></div>
+                <div class="accent-swatch" data-accent="gold" style="background:#FFC857" title="Gold"></div>
+                <div class="accent-swatch" data-accent="pink" style="background:#D81B60" title="Pink"></div>
+                <div class="accent-swatch" data-accent="red" style="background:#E53935" title="Red"></div>
+                <div class="accent-swatch" data-accent="emerald" style="background:#10B981" title="Emerald"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="group-title">SECURITY & ENCRYPTION</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>Change Safe Security PIN</h4>
+                <p>Update your 4-6 digit vault PIN code</p>
+              </div>
+              <button class="btn-secondary" id="change-pin-btn">Change PIN</button>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>AES-256-GCM On-Device Encryption</h4>
+                <p>All sensitive credentials encrypted locally via WebCrypto</p>
+              </div>
+              <span class="status-chip active"><i class="material-icons-outlined">verified_user</i> Active</span>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>30-Second Sensitive Clipboard Auto-Clear</h4>
+                <p>Automatically wipe sensitive credentials after 30 seconds</p>
+              </div>
+              <span class="status-chip active"><i class="material-icons-outlined">timer</i> Enabled</span>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3 class="group-title">APPLICATION INFORMATION</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>Note Walt for iOS</h4>
+                <p>Release 2.0 (Mobile Vault Edition)</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Navigation Tabs (Aligned for iOS Home Indicator) -->
+    <nav id="bottom-nav">
+      <button class="bottom-nav-item active" data-section="notes"><i class="material-icons-outlined">sticky_note_2</i><span>Notes</span></button>
+      <button class="bottom-nav-item" data-section="cards"><i class="material-icons-outlined">credit_card</i><span>Cards</span></button>
+      <button class="bottom-nav-item" data-section="info"><i class="material-icons-outlined">query_stats</i><span>Info</span></button>
+    </nav>
+
+    <!-- Global Floating Action Button -->
+    <button id="fab" title="Add item"><i class="material-icons-outlined">add</i></button>
+  </main>
+
+  <!-- ==================== MODALS & DIALOGS ==================== -->
+
+  <!-- 1. Rich Note Editor Modal -->
+  <div id="note-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content note-editor">
+      <div class="note-editor-title-row">
+        <input type="text" id="note-title" placeholder="Title" class="note-title-input">
+        <button id="pin-btn" class="icon-btn" title="Pin note"><i class="material-icons-outlined">push_pin</i></button>
+      </div>
+
+      <div class="editor-mode-strip">
+        <button id="toggle-checklist-mode" class="mode-btn"><i class="material-icons-outlined">checklist</i><span>Checklist</span></button>
+        <button id="insert-table-btn" class="mode-btn"><i class="material-icons-outlined">table_chart</i><span>Table</span></button>
+        <button id="copy-style-btn" class="mode-btn"><i class="material-icons-outlined">content_copy</i><span>Copy Style</span></button>
+        <button id="paste-style-btn" class="mode-btn"><i class="material-icons-outlined">content_paste</i><span>Paste Style</span></button>
+      </div>
+
+      <textarea id="note-content" placeholder="Take a note... Supports Markdown tables (| Col 1 | Col 2 |)" class="note-content-input"></textarea>
+
+      <div id="checklist-editor" class="checklist-editor" style="display:none">
+        <div id="checklist-items" class="checklist-items-list"></div>
+        <div class="add-checklist-row">
+          <i class="material-icons-outlined">add</i>
+          <input type="text" id="new-checklist-input" placeholder="List item (press Enter to add)">
+          <button id="add-checklist-item-btn" class="icon-btn"><i class="material-icons-outlined">check</i></button>
+        </div>
+      </div>
+
+      <div id="markdown-table-preview" class="markdown-table-preview" style="display:none"></div>
+      <div id="note-attachments-preview" class="attachments-preview"></div>
+      <div id="editor-active-labels" class="editor-chips-row"></div>
+
+      <div class="note-editor-toolbar">
+        <div class="toolbar-left">
+          <button id="color-picker-btn" class="icon-btn"><i class="material-icons-outlined">palette</i></button>
+          <button id="text-color-btn" class="icon-btn"><i class="material-icons-outlined">format_color_text</i></button>
+          <button id="attach-btn" class="icon-btn"><i class="material-icons-outlined">attach_file</i></button>
+          <button id="label-btn" class="icon-btn"><i class="material-icons-outlined">label</i></button>
+          <button id="reminder-btn" class="icon-btn"><i class="material-icons-outlined">notifications</i></button>
+          <button id="safe-note-btn" class="icon-btn"><i class="material-icons-outlined">lock</i></button>
+        </div>
+        <div class="toolbar-right">
+          <button id="note-save-btn" class="btn-primary">Save</button>
+          <button id="note-close-btn" class="btn-text">Close</button>
+        </div>
+      </div>
+
+      <!-- 100 Color Palettes Popup -->
+      <div id="color-picker-popup" class="color-picker-popup" style="display:none">
+        <div class="palette-tabs">
+          <button class="palette-tab active" data-cat="ultra-light">Ultra Light</button>
+          <button class="palette-tab" data-cat="muted">Muted</button>
+          <button class="palette-tab" data-cat="medium">Medium</button>
+          <button class="palette-tab" data-cat="dark">Dark</button>
+          <button class="palette-tab" data-cat="amoled">AMOLED</button>
+        </div>
+        <div id="bg-swatches-grid" class="swatches-grid"></div>
+        
+        <div class="contrast-assistant-bar">
+          <div class="contrast-status">
+            <span class="contrast-badge" id="contrast-badge">WCAG AA Pass</span>
+            <span class="contrast-ratio" id="contrast-ratio">Ratio: 12.5:1</span>
+          </div>
+          <button id="contrast-autofix-btn" class="btn-text"><i class="material-icons-outlined">auto_fix_high</i> Suggest Color</button>
+        </div>
+      </div>
+
+      <div id="text-color-popup" class="color-picker-popup" style="display:none">
+        <div class="palette-tabs">
+          <button class="palette-tab active" data-cat="dark-text">Dark</button>
+          <button class="palette-tab" data-cat="light-text">Light</button>
+          <button class="palette-tab" data-cat="accent-text">Accent</button>
+        </div>
+        <div id="text-swatches-grid" class="swatches-grid"></div>
+      </div>
+
+      <div id="label-picker-popup" class="label-picker-popup" style="display:none">
+        <h4>Labels</h4>
+        <div id="label-checkboxes"></div>
+        <div class="new-label-input">
+          <input type="text" id="new-label-name" placeholder="Create new label">
+          <button id="create-label-btn" class="icon-btn"><i class="material-icons-outlined">add</i></button>
+        </div>
+      </div>
+
+      <input type="file" id="file-input" multiple style="display:none">
+    </div>
+  </div>
+
+  <!-- 2. Wallet Card Add / Edit Modal -->
+  <div id="card-editor-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content card-editor-modal-content">
+      <div class="modal-header">
+        <h3 id="card-modal-title">Add Wallet Card / ID</h3>
+        <button id="card-modal-close" class="icon-btn"><i class="material-icons-outlined">close</i></button>
+      </div>
+
+      <!-- Live Preview -->
+      <div class="live-card-preview-container">
+        <div id="live-card-preview" class="interactive-wallet-card card-theme-0 card-text-0 card-font-0">
+          <div class="card-top-row">
+            <div class="card-chip-graphic">
+              <svg width="40" height="30" viewBox="0 0 40 30" fill="none">
+                <rect x="1" y="1" width="38" height="28" rx="4" fill="#D4AF37" stroke="#A67C1E" stroke-width="1"/>
+                <path d="M1 10 H14 M1 20 H14 M26 10 H39 M26 20 H39 M14 1 V29 M26 1 V29" stroke="#8A6615" stroke-width="0.8"/>
+                <rect x="14" y="9" width="12" height="12" rx="2" fill="#DFBC47" stroke="#8A6615" stroke-width="0.8"/>
+              </svg>
+            </div>
+            <div class="card-contactless-wave"><i class="material-icons-outlined">wifi</i></div>
+            <div class="card-issuer-name" id="preview-issuer">ISSUER BANK</div>
+          </div>
+          <div class="card-number-row" id="preview-number">•••• •••• •••• ••••</div>
+          <div class="card-bottom-row">
+            <div class="card-holder-col">
+              <span class="card-sub-label">CARDHOLDER</span>
+              <span class="card-holder-name" id="preview-holder">NAME SURNAME</span>
+            </div>
+            <div class="card-expiry-col">
+              <span class="card-sub-label">EXPIRES</span>
+              <span class="card-expiry-val" id="preview-expiry">MM/YY</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Themes -->
+      <div class="card-customization-section">
+        <label class="section-subheading">21 Gradient Themes</label>
+        <div class="gradient-theme-picker" id="gradient-theme-picker"></div>
+
+        <div class="styling-subrow">
+          <div class="styling-control">
+            <label class="section-subheading">Metallic Text Color</label>
+            <div class="metallic-text-picker" id="metallic-text-picker">
+              <div class="text-choice active" data-index="0" style="background:#FFFFFF"></div>
+              <div class="text-choice" data-index="1" style="background:#FDE047"></div>
+              <div class="text-choice" data-index="2" style="background:#E2E8F0"></div>
+              <div class="text-choice" data-index="3" style="background:#18181B"></div>
+            </div>
+          </div>
+          <div class="styling-control">
+            <label class="section-subheading">Card Typography</label>
+            <select id="card-font-select" class="form-input">
+              <option value="0">Default Sans</option>
+              <option value="1">Monospace</option>
+              <option value="2">Serif Luxury</option>
+              <option value="3">Rounded Soft</option>
+              <option value="4">Bold Display</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-form-grid">
+        <input type="hidden" id="card-id">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="card-category" class="form-input">
+            <option value="Credit / Debit Cards">Credit / Debit Cards</option>
+            <option value="Bank Accounts">Bank Accounts</option>
+            <option value="Government IDs">Government IDs</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Card / Item Name</label>
+          <input type="text" id="card-name-input" class="form-input" placeholder="e.g. HDFC Regalia">
+        </div>
+        <div class="form-group">
+          <label>Issuer / Bank</label>
+          <input type="text" id="card-issuer-input" class="form-input" placeholder="e.g. HDFC Bank, SBI">
+        </div>
+        <div class="form-group">
+          <label>Cardholder / Name on ID</label>
+          <input type="text" id="card-holder-input" class="form-input" placeholder="e.g. JOHN DOE">
+        </div>
+        <div class="form-group full-col">
+          <label>Card / Account / Document Number</label>
+          <input type="text" id="card-number-input" class="form-input" placeholder="4532 •••• •••• 1234">
+        </div>
+        <div class="form-group">
+          <label>Expiry Date</label>
+          <input type="text" id="card-expiry-input" class="form-input" placeholder="MM/YY">
+        </div>
+        <div class="form-group">
+          <label>CVV / CVC (3-4 digits)</label>
+          <input type="password" id="card-cvv-input" class="form-input" placeholder="•••" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label>ATM / Security PIN</label>
+          <input type="password" id="card-pin-input" class="form-input" placeholder="••••" maxlength="6">
+        </div>
+        <div class="form-group">
+          <label>Extra Field 1</label>
+          <div class="dual-inputs">
+            <input type="text" id="card-extra1-lbl" class="form-input" placeholder="Label">
+            <input type="text" id="card-extra1-val" class="form-input" placeholder="Value">
+          </div>
+        </div>
+        <div class="form-group full-col">
+          <label>Extra Field 2</label>
+          <div class="dual-inputs">
+            <input type="text" id="card-extra2-lbl" class="form-input" placeholder="Label">
+            <input type="text" id="card-extra2-val" class="form-input" placeholder="Value">
+          </div>
+        </div>
+        <div class="form-group full-col">
+          <label>Notes</label>
+          <textarea id="card-notes-input" class="form-input" placeholder="Additional details"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="card-save-btn" class="btn-primary">Save to Vault</button>
+        <button id="card-cancel-btn" class="btn-text">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Card Details Modal -->
+  <div id="card-detail-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content card-detail-modal-content">
+      <div class="modal-header">
+        <h3 id="card-detail-title">Card Details</h3>
+        <div class="modal-header-actions">
+          <button id="detail-pin-btn" class="icon-btn" title="Pin / Unpin"><i class="material-icons-outlined">push_pin</i></button>
+          <button id="detail-edit-btn" class="icon-btn" title="Edit"><i class="material-icons-outlined">edit</i></button>
+          <button id="detail-delete-btn" class="icon-btn" title="Delete"><i class="material-icons-outlined">delete</i></button>
+          <button id="card-detail-close" class="icon-btn"><i class="material-icons-outlined">close</i></button>
+        </div>
+      </div>
+
+      <div id="detail-card-graphic-container" class="detail-card-graphic-container"></div>
+
+      <div class="detail-credentials-grid">
+        <div class="credential-tile">
+          <div class="credential-info">
+            <span class="cred-label">CARD / ACCOUNT NUMBER</span>
+            <span class="cred-value" id="detail-number-val">•••• •••• •••• ••••</span>
+          </div>
+          <button class="copy-cred-btn" id="copy-card-num-btn"><i class="material-icons-outlined">content_copy</i></button>
+        </div>
+
+        <div class="credential-tile">
+          <div class="credential-info">
+            <span class="cred-label">EXPIRY DATE</span>
+            <span class="cred-value" id="detail-expiry-val">••/••</span>
+          </div>
+          <button class="copy-cred-btn" id="copy-card-exp-btn"><i class="material-icons-outlined">content_copy</i></button>
+        </div>
+
+        <div class="credential-tile">
+          <div class="credential-info">
+            <span class="cred-label">CVV / SECURITY CODE</span>
+            <span class="cred-value" id="detail-cvv-val">•••</span>
+          </div>
+          <div class="cred-actions">
+            <button class="icon-btn toggle-cred-btn" id="reveal-cvv-btn"><i class="material-icons-outlined">visibility</i></button>
+            <button class="copy-cred-btn" id="copy-card-cvv-btn"><i class="material-icons-outlined">content_copy</i></button>
+          </div>
+        </div>
+
+        <div class="credential-tile">
+          <div class="credential-info">
+            <span class="cred-label">ATM / ACCESS PIN</span>
+            <span class="cred-value" id="detail-pin-val">••••</span>
+          </div>
+          <div class="cred-actions">
+            <button class="icon-btn toggle-cred-btn" id="reveal-pin-btn"><i class="material-icons-outlined">visibility</i></button>
+            <button class="copy-cred-btn" id="copy-card-pin-btn"><i class="material-icons-outlined">content_copy</i></button>
+          </div>
+        </div>
+      </div>
+
+      <div id="detail-extra-fields" class="detail-extra-fields"></div>
+      <div class="modal-actions">
+        <button id="card-detail-done" class="btn-primary">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Vehicle Setup Modal -->
+  <div id="vehicle-setup-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content vehicle-setup-modal-content">
+      <div class="modal-header">
+        <h3>Vehicle Configuration</h3>
+        <button id="vehicle-setup-close" class="icon-btn"><i class="material-icons-outlined">close</i></button>
+      </div>
+      <div class="form-group">
+        <label>Vehicle Type</label>
+        <select id="vcfg-type" class="form-input">
+          <option value="Car">Car</option>
+          <option value="Bike">Motorcycle / Bike</option>
+          <option value="Scooter">Scooter</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Primary Fuel Type</label>
+        <select id="vcfg-fuel" class="form-input">
+          <option value="Petrol">Petrol</option>
+          <option value="Diesel">Diesel</option>
+          <option value="CNG+Petrol">CNG + Petrol</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Petrol Unit Price (₹ / Litre)</label>
+        <input type="number" id="vcfg-petrol-price" class="form-input" step="0.10" placeholder="101.50">
+      </div>
+      <div class="form-group">
+        <label>Diesel Unit Price (₹ / Litre)</label>
+        <input type="number" id="vcfg-diesel-price" class="form-input" step="0.10" placeholder="89.60">
+      </div>
+      <div class="form-group">
+        <label>CNG Unit Price (₹ / Kg)</label>
+        <input type="number" id="vcfg-cng-price" class="form-input" step="0.10" placeholder="76.50">
+      </div>
+      <div class="modal-actions">
+        <button id="vehicle-setup-save-btn" class="btn-primary">Save Settings</button>
+        <button id="vehicle-setup-cancel-btn" class="btn-text">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Vehicle Expense Modal -->
+  <div id="finance-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content finance-editor">
+      <h3 id="finance-modal-title">Add Vehicle Expense</h3>
+      <input type="hidden" id="finance-id">
+      
+      <div class="form-group">
+        <label>Vehicle Name</label>
+        <input type="text" id="finance-vehicle" class="form-input" placeholder="e.g. Honda Civic">
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="finance-type" class="form-input">
+          <option value="Fuel">Fuel</option>
+          <option value="Service">Service / Maintenance</option>
+          <option value="Insurance">Insurance</option>
+          <option value="PUC">Pollution Check (PUC)</option>
+          <option value="Wash">Wash</option>
+          <option value="Repair">Repair</option>
+          <option value="Parking">Parking & Toll</option>
+          <option value="Other">Other Charges</option>
+        </select>
+      </div>
+      <div id="fuel-calculation-group" class="fuel-calc-box">
+        <div class="form-group">
+          <label>Fuel Sub-Type</label>
+          <select id="finance-fuel-type" class="form-input">
+            <option value="Petrol">Petrol</option>
+            <option value="Diesel">Diesel</option>
+            <option value="CNG">CNG</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Calculated Fuel Volume</label>
+          <input type="number" id="finance-fuel-vol" class="form-input" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Amount (₹)</label>
+        <input type="number" id="finance-amount" class="form-input" placeholder="0.00" step="1.00">
+      </div>
+      <div class="form-group">
+        <label>Description / Item Name</label>
+        <input type="text" id="finance-name" class="form-input" placeholder="e.g. Full Tank Petrol">
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="finance-date" class="form-input">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="finance-notes" class="form-input" placeholder="Notes..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="finance-save-btn">Save Expense</button>
+        <button class="btn-text" id="finance-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. EMI Loan Add / Edit Modal -->
+  <div id="emi-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content emi-modal-content">
+      <div class="modal-header">
+        <h3 id="emi-modal-title">Add Loan / EMI Plan</h3>
+        <button id="emi-modal-close" class="icon-btn"><i class="material-icons-outlined">close</i></button>
+      </div>
+      <input type="hidden" id="emi-id">
+      <div class="form-group">
+        <label>Lender / Loan Name</label>
+        <input type="text" id="emi-lender" class="form-input" placeholder="e.g. HDFC Home Loan, Car Loan">
+      </div>
+      <div class="form-group">
+        <label>Monthly EMI Amount (₹)</label>
+        <input type="number" id="emi-monthly" class="form-input" placeholder="15000.00" step="1.00">
+      </div>
+      <div class="form-group">
+        <label>Total EMIs (Tenure in Months)</label>
+        <input type="number" id="emi-total" class="form-input" placeholder="36" min="1">
+      </div>
+      <div class="form-group">
+        <label>Remaining EMIs</label>
+        <input type="number" id="emi-remaining" class="form-input" placeholder="24" min="0">
+      </div>
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" id="emi-start-date" class="form-input">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="emi-notes" class="form-input" placeholder="Notes..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="emi-save-btn" class="btn-primary">Save Loan</button>
+        <button id="emi-cancel-btn" class="btn-text">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Encrypted Password Modal -->
+  <div id="password-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content password-editor">
+      <h3 id="password-modal-title">Add Password Credential</h3>
+      <input type="hidden" id="password-id">
+      <div class="form-group">
+        <label>Site / App Name</label>
+        <input type="text" id="pw-site" class="form-input" placeholder="e.g. Google, Apple">
+      </div>
+      <div class="form-group">
+        <label>Website URL</label>
+        <input type="url" id="pw-url" class="form-input" placeholder="https://apple.com">
+      </div>
+      <div class="form-group">
+        <label>Username / Email</label>
+        <input type="text" id="pw-username" class="form-input" placeholder="user@icloud.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-input-group">
+          <input type="password" id="pw-password" class="form-input" placeholder="Password">
+          <button type="button" id="pw-toggle-vis" class="icon-btn"><i class="material-icons-outlined">visibility</i></button>
+        </div>
+        <button type="button" id="pw-generate-btn" class="btn-secondary generate-pw-btn">
+          <i class="material-icons-outlined">vpn_key</i>
+          <span>Generate 18-Char Secure Password</span>
+        </button>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="pw-notes" class="form-input" placeholder="Notes..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="password-save-btn">Save Credential</button>
+        <button class="btn-text" id="password-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Label Management Modal -->
+  <div id="label-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content label-editor">
+      <h3>Edit Labels</h3>
+      <div class="new-label-row">
+        <input type="text" id="new-label-input" placeholder="Create new label">
+        <button id="add-label-btn" class="icon-btn"><i class="material-icons-outlined">add_circle</i></button>
+      </div>
+      <div id="labels-list" class="labels-list"></div>
+      <button class="btn-primary modal-close-btn" id="label-modal-close">Done</button>
+    </div>
+  </div>
+
+  <!-- 9. Confirmation Dialog -->
+  <div id="confirm-dialog" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content confirm-content">
+      <h3 id="confirm-title">Confirm Action</h3>
+      <p id="confirm-message">Are you sure?</p>
+      <div class="modal-actions">
+        <button class="btn-danger" id="confirm-yes">Yes, Delete</button>
+        <button class="btn-text" id="confirm-no">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Change Safe PIN Dialog -->
+  <div id="pin-dialog" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content pin-dialog-content">
+      <h3>Setup / Update Safe PIN</h3>
+      <p class="subtitle">Enter a new 4-6 digit numeric security code</p>
+      <div class="form-group">
+        <input type="password" id="new-pin-input" class="form-input" maxlength="6" placeholder="New PIN">
+      </div>
+      <div class="form-group">
+        <input type="password" id="confirm-pin-input" class="form-input" maxlength="6" placeholder="Confirm New PIN">
+      </div>
+      <div class="modal-actions">
+        <button id="pin-save-btn" class="btn-primary">Save PIN</button>
+        <button id="pin-cancel-btn" class="btn-text">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. 30-Second Sensitive Clipboard Auto-Clear Floating Toast -->
+  <div id="clipboard-toast" class="clipboard-toast">
+    <div class="clipboard-toast-icon"><i class="material-icons-outlined">content_paste</i></div>
+    <div class="clipboard-toast-body">
+      <span class="clipboard-toast-title" id="clipboard-title">Credential copied!</span>
+      <span class="clipboard-toast-sub">Wiping clipboard in <strong id="clipboard-countdown">30</strong>s</span>
+      <div class="clipboard-progress-bar"><div id="clipboard-progress-fill" class="clipboard-progress-fill"></div></div>
+    </div>
+    <button id="clipboard-clear-now-btn" class="btn-text-small">Clear Now</button>
+  </div>
+
+  <!-- Standard App Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts: MobileDB Client Engine + App Logic -->
+  <script src="js/mobile-db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
