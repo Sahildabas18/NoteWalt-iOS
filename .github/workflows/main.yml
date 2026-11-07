@@ -1,0 +1,66 @@
+name: Build Note Walt iOS (.ipa)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compile iOS App Package (.ipa)
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install NPM Dependencies
+        run: |
+          npm install
+
+      - name: Initialize Capacitor iOS Platform
+        run: |
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Configure CocoaPods & Pod Install
+        run: |
+          cd ios/App
+          pod install
+
+      - name: Compile Xcode Project (Ad-Hoc / Sideloading Build)
+        run: |
+          xcodebuild build \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Package Payload into NoteWalt.ipa
+        run: |
+          mkdir -p build/Payload
+          APP_PATH=$(find build/DerivedData -name "App.app" -type d | head -n 1)
+          echo "Found compiled app bundle at: $APP_PATH"
+          cp -R "$APP_PATH" build/Payload/NoteWalt.app
+          cd build
+          zip -qr NoteWalt.ipa Payload
+          echo "Successfully packaged NoteWalt.ipa!"
+          ls -lh NoteWalt.ipa
+
+      - name: Upload NoteWalt.ipa to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: NoteWalt-iOS-Build
+          path: build/NoteWalt.ipa
+          retention-days: 30
