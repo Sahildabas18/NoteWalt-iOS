@@ -585,6 +585,30 @@ function setupEventListeners() {
     pop.style.display = pop.style.display === 'none' ? 'block' : 'none';
     $('#color-picker-popup').style.display = 'none';
   });
+
+  // Tap Backdrop to Dismiss Modals (Native iOS behavior)
+  $$('.modal-backdrop').forEach(bd => {
+    bd.addEventListener('click', () => {
+      triggerHaptic();
+      bd.closest('.modal')?.classList.remove('active');
+    });
+  });
+
+  // Global Keyboard Navigation (Esc to close, Enter to submit PIN)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      $$('.modal.active').forEach(m => m.classList.remove('active'));
+      const cpop = $('#color-picker-popup');
+      if (cpop) cpop.style.display = 'none';
+      const tpop = $('#text-color-popup');
+      if (tpop) tpop.style.display = 'none';
+      $('#sort-dropdown')?.classList.remove('show');
+    }
+  });
+
+  $('#safe-pin')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') unlockSafe();
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -669,7 +693,9 @@ function renderCards() {
   if (state.currentCardMode === 'stacked' || state.currentCardMode === 'grid') {
     container.innerHTML = filtered.map((card, idx) => `
       <div class="interactive-wallet-card card-theme-${card.themeIndex ?? 0} card-text-${card.textColorIndex ?? 0} card-font-${card.fontIndex ?? 0} ${idx === 0 && state.currentCardMode === 'stacked' ? 'card-active' : ''}"
-           data-id="${card.id}" onclick="onCardClick(${card.id})">
+           data-id="${card.id}" 
+           style="z-index: ${state.currentCardMode === 'stacked' ? (filtered.length - idx) : 1};"
+           onclick="onCardClick(${card.id})">
         <div class="card-top-row">
           <div class="card-top-row-left">
             <div class="card-chip-graphic">
@@ -683,7 +709,7 @@ function renderCards() {
           </div>
           <div class="card-issuer-name">${escapeHtml(card.issuer || card.name || 'CARD')}</div>
         </div>
-        <div class="card-number-row">${escapeHtml(card.maskedNumber || '•••• •••• •••• ••••')}</div>
+        <div class="card-number-row">${escapeHtml(card.maskedNumber || '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022')}</div>
         <div class="card-bottom-row">
           <div class="card-holder-col">
             <span class="card-sub-label">CARDHOLDER</span>
@@ -843,33 +869,53 @@ function openCardDetails(id) {
   $('#card-detail-title').textContent = card.name || card.issuer || 'Card Details';
 
   $('#detail-card-graphic-container').innerHTML = `
-    <div class="interactive-wallet-card card-theme-${card.themeIndex ?? 0} card-text-${card.textColorIndex ?? 0} card-font-${card.fontIndex ?? 0}">
-      <div class="card-top-row">
-        <div class="card-top-row-left">
-          <div class="card-chip-graphic">
-            <svg width="36" height="26" viewBox="0 0 40 30" fill="none">
-              <rect x="1" y="1" width="38" height="28" rx="4" fill="#D4AF37" stroke="#A67C1E" stroke-width="1"/>
-              <path d="M1 10 H14 M1 20 H14 M26 10 H39 M26 20 H39 M14 1 V29 M26 1 V29" stroke="#8A6615" stroke-width="0.8"/>
-              <rect x="14" y="9" width="12" height="12" rx="2" fill="#DFBC47" stroke="#8A6615" stroke-width="0.8"/>
-            </svg>
+    <div class="card-flipper" id="card-detail-flipper" onclick="toggleCardDetailFlip()">
+      <!-- Front of Card -->
+      <div class="card-front interactive-wallet-card card-theme-${card.themeIndex ?? 0} card-text-${card.textColorIndex ?? 0} card-font-${card.fontIndex ?? 0}">
+        <div class="card-top-row">
+          <div class="card-top-row-left">
+            <div class="card-chip-graphic">
+              <svg width="36" height="26" viewBox="0 0 40 30" fill="none">
+                <rect x="1" y="1" width="38" height="28" rx="4" fill="#D4AF37" stroke="#A67C1E" stroke-width="1"/>
+                <path d="M1 10 H14 M1 20 H14 M26 10 H39 M26 20 H39 M14 1 V29 M26 1 V29" stroke="#8A6615" stroke-width="0.8"/>
+                <rect x="14" y="9" width="12" height="12" rx="2" fill="#DFBC47" stroke="#8A6615" stroke-width="0.8"/>
+              </svg>
+            </div>
+            <div class="card-contactless-wave"><i class="material-icons-outlined">wifi</i></div>
           </div>
-          <div class="card-contactless-wave"><i class="material-icons-outlined">wifi</i></div>
+          <div class="card-issuer-name">${escapeHtml(card.issuer || card.name || '')}</div>
         </div>
-        <div class="card-issuer-name">${escapeHtml(card.issuer || card.name || '')}</div>
+        <div class="card-number-row">${escapeHtml(card.maskedNumber || '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022')}</div>
+        <div class="card-bottom-row">
+          <div class="card-holder-col">
+            <span class="card-sub-label">CARDHOLDER</span>
+            <span class="card-holder-name">${escapeHtml(card.cardholderName || '')}</span>
+          </div>
+          <div class="card-expiry-col">
+            <span class="card-sub-label">EXPIRES</span>
+            <span class="card-expiry-val">${escapeHtml(card.expiryDate || '••/••')}</span>
+          </div>
+        </div>
       </div>
-      <div class="card-number-row">${escapeHtml(card.maskedNumber || '•••• •••• •••• ••••')}</div>
-      <div class="card-bottom-row">
-        <div class="card-holder-col">
-          <span class="card-sub-label">CARDHOLDER</span>
-          <span class="card-holder-name">${escapeHtml(card.cardholderName || '')}</span>
+      <!-- Back of Card (3D Flipped) -->
+      <div class="card-back interactive-wallet-card card-theme-${card.themeIndex ?? 0} card-text-${card.textColorIndex ?? 0}">
+        <div class="card-back-magstripe"></div>
+        <div class="card-back-cvv-row">
+          <div class="card-back-signature">Authorized Signature</div>
+          <div class="card-back-cvv-box">${escapeHtml(card.cvv || '•••')}</div>
         </div>
-        <div class="card-expiry-col">
-          <span class="card-sub-label">EXPIRES</span>
-          <span class="card-expiry-val">${escapeHtml(card.expiryDate || '••/••')}</span>
+        <div class="card-back-disclaimer">
+          This card is personal property of the holder. For customer service or lost/stolen cards, report immediately.
         </div>
       </div>
     </div>
+    <div class="card-flip-hint"><i class="material-icons-outlined" style="font-size:14px">sync</i> Tap card to flip 3D</div>
   `;
+
+  window.toggleCardDetailFlip = function() {
+    triggerHaptic();
+    $('#card-detail-flipper')?.classList.toggle('flipped');
+  };
 
   $('#detail-number-val').textContent = card.cardNumber || card.maskedNumber || '—';
   $('#detail-expiry-val').textContent = card.expiryDate || '—';

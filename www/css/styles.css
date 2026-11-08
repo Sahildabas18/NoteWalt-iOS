@@ -60,6 +60,13 @@
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-spring: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Apple ProMotion Physics Easing Curves */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-apple: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* Dark Mode (Eye-Comfort Charcoal Palette) */
@@ -152,12 +159,22 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  touch-action: manipulation;
+  transition: transform 0.12s var(--ease-apple), opacity 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
 }
 
-button:active {
-  transform: scale(0.96);
-  opacity: 0.85;
+button:active,
+.btn-primary:active,
+.btn-secondary:active,
+.icon-btn:active,
+.bottom-nav-item:active,
+.category-chip:active,
+.view-mode-btn:active,
+.info-tab:active,
+.expense-chip:active {
+  transform: scale(0.94);
+  opacity: 0.9;
 }
 
 input, textarea, select {
@@ -165,16 +182,17 @@ input, textarea, select {
   font-size: 16px; /* Prevents auto-zoom on iOS */
   color: var(--text-primary);
   background: var(--bg-input);
-  border: 1px solid transparent;
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   outline: none;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   user-select: text;
   -webkit-user-select: text;
 }
 
 input:focus, textarea:focus, select:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 /* --------------------------------------------------------------------------
@@ -509,8 +527,8 @@ body.sidebar-open #sidebar {
 
 .notes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
 }
 
 body.list-mode .notes-grid {
@@ -520,13 +538,28 @@ body.list-mode .notes-grid {
 .note-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 14px;
+  border-radius: 16px;
+  padding: 16px;
   position: relative;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  min-height: 100px;
+  min-height: 110px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.24s var(--ease-apple), box-shadow 0.24s var(--ease-apple), border-color 0.2s ease;
+  animation: cardEntrance 0.35s var(--ease-apple) backwards;
+  will-change: transform, box-shadow;
+  touch-action: manipulation;
+}
+
+.note-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: var(--accent);
+}
+
+.note-card:active {
+  transform: scale(0.965);
   box-shadow: var(--shadow-sm);
 }
 
@@ -845,30 +878,36 @@ body.list-mode .notes-grid {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 0;
-  perspective: 1000px;
+  padding: 24px 16px 80px 16px;
+  perspective: 1200px;
 }
 
 .cards-display-container.view-stacked .interactive-wallet-card {
   max-width: 360px;
-  margin-top: -90px;
-  transform: rotateX(10deg) scale(0.96);
-  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: -105px;
+  transform: rotateX(8deg) translateY(0) scale(0.96);
+  transform-origin: center bottom;
+  transition: transform 0.38s var(--ease-spring), box-shadow 0.38s var(--ease-spring);
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.15), 0 12px 28px rgba(0, 0, 0, 0.22);
+  will-change: transform, box-shadow;
 }
 
 .cards-display-container.view-stacked .interactive-wallet-card:first-child {
   margin-top: 0;
 }
 
+.cards-display-container.view-stacked .interactive-wallet-card:hover,
 .cards-display-container.view-stacked .interactive-wallet-card:active,
 .cards-display-container.view-stacked .interactive-wallet-card.card-active {
-  transform: translateY(-20px) rotateX(0deg) scale(1.02);
-  z-index: 20;
+  transform: translateY(-40px) rotateX(0deg) scale(1.03);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+  z-index: 50;
 }
 
 .cards-display-container.view-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 
@@ -1289,40 +1328,87 @@ body.list-mode .notes-grid {
 }
 
 /* --------------------------------------------------------------------------
-   9. Modals (Bottom-Sheet Style on Mobile)
+   9. Modals (Bottom-Sheet Style on Mobile, Centered on Desktop)
    -------------------------------------------------------------------------- */
 .modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  display: none;
-  align-items: flex-end; /* Slides up from bottom */
+  display: flex;
+  align-items: flex-end; /* Slides up from bottom on mobile */
   justify-content: center;
   z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.28s var(--ease-smooth), visibility 0.28s var(--ease-smooth);
 }
 
 .modal.active {
-  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
 }
 
 .modal-backdrop {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  transition: opacity 0.28s var(--ease-smooth);
+}
+
+.modal.active .modal-backdrop {
+  opacity: 1;
+}
+
+.modal-drag-handle {
+  width: 38px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--border-color);
+  margin: 0 auto 14px auto;
+  opacity: 0.8;
+  display: block;
 }
 
 .modal-content {
   position: relative;
   background: var(--bg-surface-elevated);
-  border-radius: 20px 20px 0 0;
-  padding: 20px 18px max(24px, env(safe-area-inset-bottom, 24px));
-  box-shadow: var(--shadow-xl);
-  max-height: 92vh;
+  border-radius: 24px 24px 0 0;
+  padding: 16px 20px max(24px, env(safe-area-inset-bottom, 24px));
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
   width: 100%;
+  max-width: 580px;
   overflow-y: auto;
   z-index: 10;
-  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateY(100%);
+  transition: transform 0.36s var(--ease-spring);
   -webkit-overflow-scrolling: touch;
+  will-change: transform;
+}
+
+.modal.active .modal-content {
+  transform: translateY(0);
+}
+
+@media (min-width: 641px) {
+  .modal {
+    align-items: center; /* Centered modal dialog on larger screens */
+  }
+  .modal-content {
+    border-radius: 24px;
+    transform: translateY(16px) scale(0.96);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  }
+  .modal.active .modal-content {
+    transform: translateY(0) scale(1);
+  }
+  .modal-drag-handle {
+    display: none;
+  }
 }
 
 .modal-header {
@@ -1647,7 +1733,7 @@ body.list-mode .notes-grid {
 }
 
 /* --------------------------------------------------------------------------
-   11. Animations
+   11. Animations & Fluidity Physics
    -------------------------------------------------------------------------- */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -1657,4 +1743,177 @@ body.list-mode .notes-grid {
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+
+@keyframes cardEntrance {
+  0% { opacity: 0; transform: translateY(14px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes viewEntrance {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes springPop {
+  0% { transform: scale(0.85); opacity: 0; }
+  60% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50% { box-shadow: 0 0 0 8px transparent; }
+}
+
+/* 3D Card Flipper in Detail Modal */
+.detail-card-graphic-container {
+  perspective: 1000px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.card-flipper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.586;
+  transition: transform 0.65s var(--ease-spring);
+  transform-style: preserve-3d;
+}
+
+.card-flipper.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+}
+
+.card-back-magstripe {
+  width: 100%;
+  height: 42px;
+  background: #111827;
+  margin-top: 18px;
+}
+
+.card-back-cvv-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 18px;
+  gap: 12px;
+}
+
+.card-back-signature {
+  height: 32px;
+  flex: 1;
+  background: #F1F5F9;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  color: #64748B;
+  font-style: italic;
+  font-size: 0.75rem;
+}
+
+.card-back-cvv-box {
+  height: 32px;
+  background: #FFFFFF;
+  border-radius: 4px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #0F172A;
+  letter-spacing: 2px;
+}
+
+.card-back-disclaimer {
+  padding: 8px 18px 14px;
+  font-size: 0.62rem;
+  opacity: 0.75;
+  line-height: 1.35;
+}
+
+.card-flip-hint {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+/* Safe / PIN Pad Alignment */
+.pin-pad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  max-width: 270px;
+  margin: 20px auto 10px auto;
+}
+
+.pin-key-btn {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  transition: background 0.15s ease, transform 0.12s var(--ease-spring);
+  box-shadow: var(--shadow-sm);
+  touch-action: manipulation;
+}
+
+.pin-key-btn:active {
+  background: var(--accent-light);
+  color: var(--accent);
+  transform: scale(0.88);
+}
+
+.pin-dots-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 20px 0;
+}
+
+.pin-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  transition: background 0.2s var(--ease-spring), transform 0.2s var(--ease-spring);
+}
+
+.pin-dot.filled {
+  background: var(--accent);
+  transform: scale(1.2);
 }

@@ -251,9 +251,10 @@ class MobileDB {
           const decryptedPin = await this.decrypt(c.pin_encrypted || '');
 
           const cleanNum = decryptedNumber.replace(/\s+/g, '');
+          const b4 = '\u2022\u2022\u2022\u2022';
           const masked = cleanNum.length >= 4
-            ? `•••• •••• •••• ${cleanNum.slice(-4)}`
-            : (decryptedNumber || '•••• •••• •••• ••••');
+            ? `${b4} ${b4} ${b4} ${cleanNum.slice(-4)}`
+            : (decryptedNumber || `${b4} ${b4} ${b4} ${b4}`);
 
           return {
             id: c.id,
